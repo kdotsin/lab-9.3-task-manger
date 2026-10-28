@@ -1,6 +1,7 @@
 import { useState } from "react";
-import TaskList from "./components/TaskList/TaskList"
+import TaskList from "./components/TaskList/TaskList";
 import type { Task, TaskStatus } from "./types";
+import TaskFilter from "./components/TaskFilter/TaskFilter";
 
 export const sampleTasks: Task[] = [
   {
@@ -38,27 +39,46 @@ export const sampleTasks: Task[] = [
 ];
 
 function App() {
-  const [tasks, setTasks] = useState(sampleTasks)
-  
+  const [tasks, setTasks] = useState(sampleTasks);
+  const [status, setStatus] = useState<TaskStatus>();
+  const [priority, setPriority] = useState<Task["priority"]>();
+
   function handleStatusChange(id: string, status: TaskStatus) {
-    setTasks((prev) => 
-      prev.map((task) => (task.id === id ? { ...task, status }: task))
+    setTasks((prev) =>
+      prev.map((task) => (task.id === id ? { ...task, status } : task)),
     );
-  };
+  }
 
   function handleDelete(id: string) {
-    setTasks((prev) => prev.filter((task) => task.id !==id))
+    setTasks((prev) => prev.filter((task) => task.id !== id));
+  }
+
+  function handleFilterChange(changes: {
+    status?: TaskStatus;
+    priority?: Task["priority"];
+  }) {
+    if ("status" in changes) setStatus(changes.status);
+    if ("priority" in changes) setPriority(changes.priority);
+  }
+
+  function getVisibleTasks() {
+    return tasks.filter(
+      (task) =>
+        (!status || task.status === status) &&
+        (!priority || task.priority === priority),
+    );
   }
 
   return (
     <div>
-      <TaskList 
-        tasks={tasks}
+      <TaskFilter onFilterChange={handleFilterChange} />
+      <TaskList
+        tasks={getVisibleTasks()}
         onStatusChange={handleStatusChange}
         onDelete={handleDelete}
       />
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
